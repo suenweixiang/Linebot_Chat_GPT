@@ -1,11 +1,9 @@
 from flask import Flask, request
-# from flask_ngrok import run_with_ngrok
 import json
 
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from bardapi import Bard
 import os
 import openai
 
