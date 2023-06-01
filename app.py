@@ -1,51 +1,72 @@
 from flask import Flask, request
 import json
-
+import time
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import os
 import openai
-
-openai.organization = 'org-gtPrrBF65iImcYUDhxzwQQJA'
-openai.api_key = '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'
+from bardapi import Bard
+import numpy
 
 app = Flask(__name__)
+
 @app.route('/', methods=['POST'])
 def linebot():
     user_input = request.get_data(as_text=True)
     # msg = json_data['events'][0]['message']['text']
+    acccess_token = 'YOUR_ACCESS_TOKEN'
+    json_data = json.loads(user_input)
+    secret = 'YOUR_SECRET'
+    line_bot_api = LineBotApi(acccess_token)
+    handler = WebhookHandler(secret)
+    signature = request.headers['X-Line-Signature']
+    handler.handle(user_input, signature)
+    tk = json_data['events'][0]['replyToken']
+    st = time.time()
     try:
-        json_data = json.loads(user_input)
-        acccess_token = 'g1kdx2p4LAd4d/RL/rNEUxYzKN6Mb6SMqmyQ+JpGGRyVctJv5WyT6ap7ejxLB4Cm8RU1fSxEdIOneBL0779+FDrYjILQrHXYYe9YCV1v0ryqq/qFl1znpvjvQ7pcjlj7StL6YaJOb2vNOCjJn0pkzwdB04t89/1O/w1cDnyilFU='
-        secret = 'd7f27bc016168116978f4b202235a3ab'
-        line_bot_api = LineBotApi(acccess_token)
-        handler = WebhookHandler(secret)
-        signature = request.headers['X-Line-Signature']
-        handler.handle(user_input, signature)
-        tk = json_data['events'][0]['replyToken']
         type = json_data['events'][0]['message']['type']
-        if type=="text":
+        if type == "text":
             user_msg = json_data['events'][0]['message']['text']
-            completion = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
-            messages=[
-                {
-            'role':'user', 'content':f'{user_msg}'
-            }
-            ]
-        )
-            respond = completion.choices[0].message['content']
-            print(f'Question:{user_msg}')
-            print('Answer:',respond)
-            reply = respond
+            print(f'{user_msg}')
+            # Chat-GPT
+            if user_msg[0:9]=='Chat-GPT:':
+                openai.organization = 'OPENAI.ORGANIZATION'
+                openai.api_key = 'OPENAI_API_KEY'
+                model = user_msg[0:8]
+                user_question = user_msg[9:]
+                completion = openai.ChatCompletion.create(
+                    model='gpt-3.5-turbo-0301',
+                    messages=[
+                        {
+                            'role': 'user', 'content': f'{user_question}#zh-tw'
+                        }
+                    ]
+                )
+                respond = completion.choices[0].message['content']
+                et = time.time()
+                line_bot_api.reply_message(tk, TextSendMessage(f'你的問題：{user_question}\n{model}：{respond}\n花費時間：{numpy.round(et-st,2)}秒'))
+            # Bard
+            elif user_msg[0:5]=='Bard:':
+                bard_key = 'BARD_KEY'
+                os.environ['_BARD_API_KEY'] = bard_key
+                model = user_msg[0:4]
+                user_question = user_msg[5:]
+                respond = Bard().get_answer(f'{user_msg}')['content']
+                et = time.time()
+                line_bot_api.reply_message(tk, TextSendMessage(f'你的問題：{user_question}\n{model}：{respond}\n花費時間：{numpy.round(et-st,2)}秒'))
+            # else:
+                # respond = user_msg
+                # line_bot_api.reply_message(tk, TextSendMessage(f'{respond}'))
         else:
-            reply = 'Not Text'
+            respond = 'Not Text'
         # print(reply)
-        line_bot_api.reply_message(tk, TextSendMessage(reply))
-    except:
-        print(user_input)
+    except Exception as e:
+        line_bot_api.reply_message(tk, TextSendMessage(f'錯誤訊息:{e}'))
     return 'OK'
+
+
 if __name__ == '__main__':
     # run_with_ngrok(app)
     app.run(debug=True)
+    time.sleep(10)
