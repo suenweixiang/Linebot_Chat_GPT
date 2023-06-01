@@ -1,6 +1,0 @@
-#keys
-access_token = 'g1kdx2p4LAd4d/RL/rNEUxYzKN6Mb6SMqmyQ+JpGGRyVctJv5WyT6ap7ejxLB4Cm8RU1fSxEdIOneBL0779+FDrYjILQrHXYYe9YCV1v0ryqq/qFl1znpvjvQ7pcjlj7StL6YaJOb2vNOCjJn0pkzwdB04t89/1O/w1cDnyilFU='
-openai_organization = 'org-gtPrrBF65iImcYUDhxzwQQJA'
-secret = 'd7f27bc016168116978f4b202235a3ab'
-openai_api_key = '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'
-bard_key = 'WwhJgpJJJNA0EwwZGevlrPAq9qL2sfFlmMUEJzePpUYvy1w-LN7Bhdb6kM6y8Dlw7r12Lg.'
